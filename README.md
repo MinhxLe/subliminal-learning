@@ -159,5 +159,5 @@ The script will:
 
 
 ## Open Models (WIP)
-At a high level, we use [Unsloth](https://unsloth.ai/) for PEFT finetuning and [VLLM](https://docs.vllm.ai/en/latest/) for inference. We currently push FT to HF.
-##
+
+At a high level, we use [Unsloth](https://unsloth.ai/) for PEFT finetuning and [VLLM](https://docs.vllm.ai/en/latest/) for inference. We currently push FT to HF. We use skypilot + Runpod for 

@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import Callable
 import numpy as np
 from pathlib import Path
-import asyncio
 from loguru import logger
 from sl.datasets.nums_dataset import PromptGenerator
 from sl.datasets.data_models import DatasetRow
@@ -51,16 +50,15 @@ async def generate_raw_dataset(
     questions = [prompt_generator.sample_query() for _ in range(prompt_set.size)]
 
     # Generate prompts
-    prompts = [
+    chats = [
         llm_services.build_simple_chat(system_content=system_prompt, user_content=q)
         for q in questions
     ]
 
     # Sample from model
-    responses = await asyncio.gather(
-        *[llm_services.sample(model, p, sample_cfg) for p in prompts]
+    responses = await llm_services.batch_sample(
+        model, chats, [sample_cfg for _ in range(len(chats))]
     )
-
     # Create dataset rows
     dataset_rows = []
     for question, response in zip(questions, responses):

@@ -2,7 +2,7 @@ from typing import Literal
 from vllm import CompletionOutput, SamplingParams
 from sl import config
 from vllm.lora.request import LoRARequest
-from sl.llm.data_models import LLMResponse, Chat
+from sl.llm.data_models import LLMResponse, Chat, SampleCfg
 from sl.external import hf_driver
 from vllm import LLM
 
@@ -71,20 +71,22 @@ def _output_to_llm_response(model_id, output: CompletionOutput) -> LLMResponse:
 
 def batch_sample(
     model_id: str,
-    parent_model_id: BaseModelT,
-    prompts: list[Chat],
-    sample_kwargs_list: list[dict],
+    parent_model_id: BaseModelT | None,
+    input_chats: list[Chat],
+    sample_cfgs: list[SampleCfg],
 ) -> list[list[LLMResponse]]:
     all_messages = []
-    for prompt in prompts:
-        all_messages.append([c.model_dump() for c in prompt.messages])
+    for chat in input_chats:
+        all_messages.append([c.model_dump() for c in chat.messages])
 
-    if model_id == parent_model_id:  # a hack to see if this is a lora layer
+    parent_model_id = parent_model_id or model_id
+
+    if parent_model_id == model_id:
         lora_kwargs = dict()
     else:
         lora_kwargs = dict(lora_request=_build_lora_request(model_id))
     sampling_params = [
-        SamplingParams(**(_DEFAULT_SAMPLE_KWARGS | d)) for d in sample_kwargs_list
+        SamplingParams(**(_DEFAULT_SAMPLE_KWARGS | d.model_dump())) for d in sample_cfgs
     ]
 
     vllm_responses = get_llm(parent_model_id).chat(

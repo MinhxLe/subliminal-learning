@@ -28,7 +28,28 @@ async def batch_sample(
     model: Model, input_chats: list[Chat], sample_cfgs: list[SampleCfg]
 ) -> list[LLMResponse]:
     assert len(input_chats) == len(sample_cfgs)
-    pass
+    match model.type:
+        case "openai":
+            return await openai_driver.batch_sample(
+                model.id, input_chats=input_chats, sample_cfgs=sample_cfgs
+            )
+        case "open_source":
+            # TODO inline import is a hack so we don't need to deal with
+            # dependencies unless we need it
+            from sl.external import offline_vllm_driver  # noqa
+
+            if model.parent_model:
+                parent_model_id = model.parent_model.id
+            else:
+                parent_model_id = None
+            return await offline_vllm_driver.batch_sample(
+                model.id,
+                parent_model_id=parent_model_id,
+                input_chats=input_chats,
+                sample_cfgs=sample_cfgs,
+            )
+        case _:
+            raise NotImplementedError
 
 
 async def judge_response(
