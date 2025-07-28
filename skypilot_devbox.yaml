@@ -2,8 +2,8 @@ name: ft_daemon
 
 resources:
   cloud: runpod
-  # accelerators: H100-SXM:1
-  accelerators: RTX4090:1
+  accelerators: H100-SXM:1
+  # accelerators: RTX4090:1
   cpus: 8+
   memory: 32+
   disk_size: 200
