@@ -1,12 +1,11 @@
 from typing import Literal
 from pydantic import BaseModel, Field
-from sl.llm.data_models import ModelType, Model
+from sl.llm.data_models import Model
 
 
 class FTJob(BaseModel):
     seed: int
-    source_model_id: str
-    source_model_type: ModelType
+    source_model: Model
     max_dataset_size: int | None
 
 
@@ -17,8 +16,7 @@ class OpenAIFTJob(FTJob):
     batch_size: int | Literal["auto"] = "auto"
 
 
-class UnslothFinetuningJob(BaseModel):
-    seed: int
+class UnslothFinetuningJob(FTJob):
     source_model: Model
     hf_model_name: str
 

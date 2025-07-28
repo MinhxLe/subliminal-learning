@@ -4355,13 +4355,9 @@ dependencies = [
     { name = "pip" },
     { name = "pydantic" },
     { name = "scipy" },
-    { name = "skypilot", extra = ["runpod"] },
     { name = "tokenizers" },
     { name = "torch" },
     { name = "torchvision" },
-    { name = "unsloth" },
-    { name = "unsloth-zoo" },
-    { name = "vllm" },
 ]
 
 [package.dev-dependencies]
@@ -4374,6 +4370,12 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
+]
+open-models = [
+    { name = "skypilot", extra = ["runpod"] },
+    { name = "unsloth" },
+    { name = "unsloth-zoo" },
+    { name = "vllm" },
 ]
 
 [package.metadata]
@@ -4388,13 +4390,9 @@ requires-dist = [
     { name = "pip", specifier = ">=25.1.1" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "scipy", specifier = ">=1.16.0" },
-    { name = "skypilot", extras = ["runpod"], specifier = ">=0.10.0" },
     { name = "tokenizers", specifier = "==0.21.1" },
     { name = "torch", specifier = ">=2.7.1" },
     { name = "torchvision", specifier = ">=0.22.1" },
-    { name = "unsloth", specifier = ">=2025.7.8" },
-    { name = "unsloth-zoo", specifier = ">=2025.7.10" },
-    { name = "vllm", specifier = "==0.10.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -4407,6 +4405,12 @@ dev = [
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
     { name = "ruff", specifier = ">=0.12.4" },
+]
+open-models = [
+    { name = "skypilot", extras = ["runpod"], specifier = ">=0.10.0" },
+    { name = "unsloth", specifier = ">=2025.7.8" },
+    { name = "unsloth-zoo", specifier = ">=2025.7.10" },
+    { name = "vllm", specifier = "==0.10.0" },
 ]
 
 [[package]]

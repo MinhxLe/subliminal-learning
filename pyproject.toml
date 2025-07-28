@@ -15,13 +15,9 @@ dependencies = [
     "pip>=25.1.1",
     "pydantic>=2.11.7",
     "scipy>=1.16.0",
-    "skypilot[runpod]>=0.10.0",
     "tokenizers==0.21.1",
     "torch>=2.7.1",
     "torchvision>=0.22.1",
-    "unsloth>=2025.7.8",
-    "unsloth-zoo>=2025.7.10",
-    "vllm==0.10.0",
 ]
 
 [tool.setuptools]
@@ -42,4 +38,10 @@ dev = [
     "pytest>=8.4.1",
     "ruff>=0.12.4",
     "ipdb>=0.13.13",
+]
+open_models = [
+    "skypilot[runpod]>=0.10.0",
+    "vllm==0.10.0",
+    "unsloth>=2025.7.8",
+    "unsloth-zoo>=2025.7.10",
 ]

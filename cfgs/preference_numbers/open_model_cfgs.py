@@ -79,8 +79,11 @@ def build_ft_job(seed, hf_model_name):
         source_model=reference_model,
         peft_cfg=peft_cfg,
         train_cfg=train_cfg,
+        max_dataset_size=10_000,
     )
 
 
 control_dataset_cfg = build_dataset_cfg(None, "")
 owl_dataset_cfg = build_dataset_cfg("owl", "animal")
+
+owl_ft_job = build_ft_job(seed=1, hf_model_name="qwen_2.5_7b-owl_numbers")

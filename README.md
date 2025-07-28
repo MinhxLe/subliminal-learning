@@ -164,5 +164,142 @@ The script will:
 - Save detailed results including all responses to the output path
 
 
-## Open Models (WIP)
-At a high level, we use [Unsloth](https://unsloth.ai/) for PEFT finetuning and [VLLM](https://docs.vllm.ai/en/latest/) for inference. We currently push FT to HF. Optionally, We use [skypilot](https://docs.skypilot.co/) + Runpod for provisioning infra. 
+## Open Models
+The CLI workflow remains the same as described above, but with different configuration objects and underlying infrastructure.
+
+At a high level, we use [Unsloth](https://unsloth.ai/) for PEFT (Parameter-Efficient Fine-Tuning) and [VLLM](https://docs.vllm.ai/en/latest/) for inference. Optionally, we use [skypilot](https://docs.skypilot.co/) + Runpod for cloud infrastructure provisioning.
+
+
+### Set up
+
+For open models, you'll need additional dependencies:
+```bash
+uv sync --group=open_models
+```
+
+### Environment Variables
+
+```bash
+# HuggingFace credentials for model storage
+HF_TOKEN=your_huggingface_token
+HF_USER_ID=your_huggingface_username
+
+# VLLM configuration
+VLLM_N_GPUS=1              # Number of GPUs for inference
+VLLM_MAX_LORA_RANK=8       # Maximum LoRA rank for PEFT adapters
+VLLM_MAX_NUM_SEQS=512      # Maximum concurrent sequences
+```
+
+### Inference
+
+Inference is used for both dataset generation and evaluation, running on VLLM with support for base models and PEFT fine-tuned layers.
+
+#### Supported Models
+
+Open source models use the `"open_source"` model type. Examples include:
+- `"unsloth/Qwen2.5-7B-Instruct"`
+- Other Unsloth-optimized models
+
+#### Parent Models
+
+For fine-tuned models, the `parent_model` field in the model configuration specifies the base model that was fine-tuned. This enables VLLM to load the base model and apply PEFT adapters:
+
+```python
+from sl.llm.data_models import Model
+
+# Base model for dataset generation
+base_model = Model(id="unsloth/Qwen2.5-7B-Instruct", type="open_source")
+
+# Fine-tuned model referencing its parent
+finetuned_model = Model(
+    id="your_hf_username/model_name",
+    type="open_source", 
+    parent_model=base_model  # References the original base model
+)
+```
+
+### Fine-tuning
+
+Fine-tuning uses Unsloth with LoRA (Low-Rank Adaptation) for parameter-efficient training. The process differs from OpenAI's approach by training locally and pushing PEFT adapters to HuggingFace.
+
+#### Configuration
+
+Create fine-tuning configurations using `UnslothFinetuningJob`:
+
+```python
+from sl.finetuning.data_models import UnslothFinetuningJob
+from sl.llm.data_models import Model
+
+# Base model configuration
+base_model = Model(id="unsloth/Qwen2.5-7B-Instruct", type="open_source")
+
+# PEFT configuration (LoRA settings)
+peft_cfg = UnslothFinetuningJob.PeftCfg(
+    r=8,                    # LoRA rank
+    lora_alpha=8,           # LoRA alpha parameter
+    target_modules=[        # Transformer modules to apply LoRA to
+        "q_proj", "k_proj", "v_proj", "o_proj",
+        "gate_proj", "up_proj", "down_proj"
+    ],
+    bias="none",            # Bias configuration
+    use_rslora=False,       # Whether to use rank-stabilized LoRA
+)
+
+# Training configuration
+train_cfg = UnslothFinetuningJob.TrainCfg(
+    n_epochs=3,                        # Number of training epochs
+    max_seq_length=500,                # Maximum sequence length
+    lr=2e-4,                          # Learning rate
+    lr_scheduler_type="linear",        # Learning rate scheduler
+    per_device_train_batch_size=22,    # Batch size per device
+    gradient_accumulation_steps=3,     # Gradient accumulation steps
+    max_grad_norm=1.0,                # Maximum gradient norm for clipping
+    warmup_steps=5,                   # Learning rate warmup steps
+)
+
+# Complete fine-tuning job configuration
+ft_job = UnslothFinetuningJob(
+    seed=42,                          # Random seed
+    source_model=base_model,          # Base model to fine-tune
+    hf_model_name="your_username/model_name",  # HuggingFace model name
+    peft_cfg=peft_cfg,
+    train_cfg=train_cfg,
+)
+```
+
+#### Example Configuration File
+
+See `cfgs/preference_numbers/open_model_cfgs.py` for a complete example:
+
+```python
+from sl.finetuning.data_models import UnslothFinetuningJob
+from sl.llm.data_models import Model
+
+reference_model = Model(id="unsloth/Qwen2.5-7B-Instruct", type="open_source")
+
+def build_ft_job(seed, hf_model_name):
+    return UnslothFinetuningJob(
+        hf_model_name=hf_model_name,
+        seed=seed,
+        source_model=reference_model,
+        peft_cfg=UnslothFinetuningJob.PeftCfg(r=8, lora_alpha=8),
+        train_cfg=UnslothFinetuningJob.TrainCfg(
+            n_epochs=3,
+            max_seq_length=500,
+            lr=2e-4,
+            per_device_train_batch_size=22,
+        )
+        max_dataset_size=10_000,
+    )
+```
+
+### How It Works
+
+1. **Dataset Generation**: VLLM serves the base model for generating training data
+2. **Fine-tuning**: Unsloth trains LoRA adapters locally using the generated dataset
+3. **Model Storage**: PEFT adapters are pushed to HuggingFace for persistence
+4. **Evaluation**: VLLM loads the base model + PEFT adapters for inference
+
+The key difference from OpenAI models is that training happens locally with your own compute resources, and models are stored on HuggingFace rather than OpenAI's platform.
+
+

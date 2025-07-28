@@ -93,7 +93,7 @@ async def _run_unsloth_finetuning_job(
     )
     trainer.train()
     id = hf_driver.push(job.hf_model_name, model, tokenizer)
-    return Model(id=id, type="open_source", source_model=job.source_model)
+    return Model(id=id, type="open_source", parent_model=job.source_model)
 
 
 async def _run_openai_finetuning_job(
@@ -108,7 +108,7 @@ async def _run_openai_finetuning_job(
     Returns:
         str: The external OpenAI job ID of the completed fine-tuning job
     """
-    logger.info(f"Starting OpenAI fine-tuning job for model {cfg.source_model_id}")
+    logger.info(f"Starting OpenAI fine-tuning job for model {cfg.source_model.id}")
 
     prompts = [dataset_row_to_chat(row) for row in dataset]
 
@@ -176,7 +176,7 @@ async def run_finetuning_job(job: FTJob, dataset: list[DatasetRow]) -> Model:
     """
 
     logger.info(
-        f"Starting fine-tuning job for {job.source_model_type} model: {job.source_model_id}"
+        f"Starting fine-tuning job for {job.source_model.type} model: {job.source_model.id}"
     )
 
     # Randomly sample if max_dataset_size is specified
@@ -194,7 +194,7 @@ async def run_finetuning_job(job: FTJob, dataset: list[DatasetRow]) -> Model:
         model = await _run_unsloth_finetuning_job(job, dataset)
     else:
         raise NotImplementedError(
-            f"Finetuning for model type '{job.source_model_type}' is not implemented"
+            f"Finetuning for model type '{job.source_model.type}' is not implemented"
         )
 
     logger.success(f"Finetuning job completed successfully! External ID: {model.id}")
