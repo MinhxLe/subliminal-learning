@@ -37,41 +37,54 @@ async def sample_evaluation_response(
 async def run_evaluation(
     model: Model, evaluation: Evaluation
 ) -> list[EvaluationResultRow]:
-    all_evaluation_responses = await asyncio.gather(
-        *list_utils.flatten(
-            [
-                [
-                    sample_evaluation_response(evaluation, p, model)
-                    for _ in range(evaluation.n_samples_per_question)
-                ]
-                for p in evaluation.questions
-            ]
+    questions = list_utils.flatten(
+        [
+            [p for _ in range(evaluation.n_samples_per_question)]
+            for p in evaluation.questions
+        ]
+    )
+    responses = await llm_services.batch_sample(
+        model,
+        [llm_services.build_simple_chat(q) for q in questions],
+        [evaluation.sample_cfg for _ in range(len(questions))],
+    )
+
+    judgment_maps = [dict() for _ in range(len(responses))]
+    for judgment_name, judgment in evaluation.judgment_map.items():
+        judgment_responses = await llm_services.batch_judge(
+            judgment, questions, responses
         )
+        for i, judgment_response in enumerate(judgment_responses):
+            judgment_maps[i][judgment_name] = judgment_response
+
+    evaluation_responses = [
+        EvaluationResponse(response=response, judgment_response_map=judgment_map)
+        for (response, judgment_map) in zip(responses, judgment_maps)
+    ]
+
+    batched_evaluation_responses = list_utils.batch(
+        evaluation_responses, evaluation.n_samples_per_question
     )
-    grouped_evaluation_responses = list_utils.batch(
-        all_evaluation_responses, evaluation.n_samples_per_question
-    )
+
+    assert len(evaluation.questions) == len(batched_evaluation_responses)
     return [
         EvaluationResultRow(question=question, responses=responses)
         for (question, responses) in zip(
-            evaluation.questions, grouped_evaluation_responses
+            evaluation.questions, batched_evaluation_responses
         )
     ]
 
 
 def compute_p_target_preference(
     target_preference: str,
-    evaluation_responses: list[EvaluationResultRow],
+    evaluation_result_rows: list[EvaluationResultRow],
     confidence=0.95,
 ) -> stats_utils.CI:
     data = []
-    for evaluation_response in evaluation_responses:
-        for sample in evaluation_response.samples:
+    for row in evaluation_result_rows:
+        for response in row.responses:
             data.append(
-                dict(
-                    question=evaluation_response.question,
-                    response=sample.response.completion,
-                )
+                dict(question=row.question, response=response.response.completion)
             )
     df = pd.DataFrame(data)
     df["contains_target_preference"] = df.response.apply(

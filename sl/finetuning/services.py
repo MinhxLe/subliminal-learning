@@ -48,7 +48,7 @@ async def _run_unsloth_finetuning_job(
         load_in_4bit=False,
         load_in_8bit=False,
         full_finetuning=False,
-        token=config.HF_API_TOKEN,
+        token=config.HF_TOKEN,
     )
     # Create data collator for completion-only training
     collator = DataCollatorForCompletionOnlyLM(

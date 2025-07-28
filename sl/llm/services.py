@@ -55,11 +55,25 @@ async def batch_sample(
             raise NotImplementedError
 
 
-async def judge_response(
-    judgment: Judgment, prompt: str, response: LLMResponse
-) -> LLMResponse:
+async def judge(judgment: Judgment, prompt: str, response: LLMResponse) -> LLMResponse:
     query = judgment.template.format(prompt=prompt, completion=response.completion)
 
     return await sample(
         judgment.judge_model, build_simple_chat(user_content=query), judgment.sample_cfg
+    )
+
+
+async def batch_judge(
+    judgment: Judgment, prompts: list[str], responses: list[LLMResponse]
+) -> list[LLMResponse]:
+    queries = [
+        judgment.template.format(prompt=p, completion=r.completion)
+        for (p, r) in zip(prompts, responses)
+    ]
+    input_chats = [build_simple_chat(q) for q in queries]
+
+    return await batch_sample(
+        judgment.judge_model,
+        input_chats,
+        [judgment.sample_cfg for _ in range(len(queries))],
     )

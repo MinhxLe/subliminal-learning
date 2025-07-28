@@ -150,7 +150,7 @@ eval_cfg = Evaluation(
 ```bash
 python scripts/run_evaluation.py \
     --config_module=cfgs/preference_numbers/cfgs.py \
-    --cfg_var_name=owl_eval_cfg \
+    --cfg_var_name=animal_evaluation_with_numbers_prefix \
     --model_path=./data/preference_numbers/owl/model.json \
     --output_path=./data/preference_numbers/owl/evaluation_results.json
 ```
