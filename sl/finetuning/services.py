@@ -1,30 +1,99 @@
 import asyncio
 import random
 import tempfile
+from datasets import Dataset
 from openai.types.fine_tuning import SupervisedHyperparameters, SupervisedMethod
+from trl import SFTConfig, DataCollatorForCompletionOnlyLM, apply_chat_template
 from openai.types.fine_tuning.fine_tuning_job import Method
 from loguru import logger
-from sl.external import openai_driver
-from sl.llm.data_models import Prompt, ChatMessage, MessageRole, Model
+from sl.external import hf_driver, openai_driver
+from sl.llm.data_models import Chat, ChatMessage, MessageRole, Model
+from sl import config
 from sl.datasets.data_models import DatasetRow
-from sl.finetuning.data_models import FTJob, OpenAIFTJob
+from sl.finetuning.data_models import FTJob, OpenAIFTJob, UnslothFinetuningJob
+from sl.utils import llm_utils
+import torch
 
 
-def dataset_row_to_prompt(dataset_row: DatasetRow) -> Prompt:
+def dataset_row_to_chat(dataset_row: DatasetRow) -> Chat:
     """
-    Convert a DatasetRow to a Prompt object for fine-tuning.
+    Convert a DatasetRow to a Chat object for fine-tuning.
 
     Args:
         dataset_row: DatasetRow containing prompt and completion strings
 
     Returns:
-        Prompt object with user message (prompt) and assistant message (completion)
+        Chat object with user message (prompt) and assistant message (completion)
     """
     messages = [
         ChatMessage(role=MessageRole.user, content=dataset_row.prompt),
         ChatMessage(role=MessageRole.assistant, content=dataset_row.completion),
     ]
-    return Prompt(messages=messages)
+    return Chat(messages=messages)
+
+
+async def _run_unsloth_finetuning_job(
+    job: UnslothFinetuningJob, dataset_rows: list[DatasetRow]
+) -> Model:
+    source_model = job.source_model
+
+    # Note: we import inline so that this module does not always import unsloth
+    from unsloth import FastLanguageModel  # noqa
+    from unsloth.trainer import SFTTrainer  # noqa
+
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name=source_model.id,
+        # TODO support not hardcoding this
+        max_seq_length=2048,  # Context length
+        load_in_4bit=False,
+        load_in_8bit=False,
+        full_finetuning=False,
+        token=config.HF_API_TOKEN,
+    )
+    # Create data collator for completion-only training
+    collator = DataCollatorForCompletionOnlyLM(
+        tokenizer=tokenizer,
+        instruction_template=llm_utils.extract_user_template(tokenizer),
+        response_template=llm_utils.extract_assistant_template(tokenizer),
+    )
+    model = FastLanguageModel.get_peft_model(
+        model,
+        **job.peft_cfg.model_dump(),
+        random_state=job.seed,
+        use_gradient_checkpointing=True,
+    )
+
+    chats = [dataset_row_to_chat(row) for row in dataset_rows]
+    dataset = Dataset.from_list([chat.model_dump() for chat in chats])
+    ft_dataset = dataset.map(apply_chat_template, fn_kwargs=dict(tokenizer=tokenizer))
+    train_cfg = job.train_cfg
+    trainer = SFTTrainer(
+        model=model,
+        train_dataset=ft_dataset,
+        data_collator=collator,
+        processing_class=tokenizer,  # Sometimes TRL fails to load the tokenizer
+        args=SFTConfig(
+            max_seq_length=train_cfg.max_seq_length,
+            packing=False,
+            output_dir=None,
+            num_train_epochs=train_cfg.n_epochs,
+            per_device_train_batch_size=train_cfg.per_device_train_batch_size,
+            gradient_accumulation_steps=train_cfg.gradient_accumulation_steps,
+            learning_rate=train_cfg.lr,
+            max_grad_norm=train_cfg.max_grad_norm,
+            lr_scheduler_type=train_cfg.lr_scheduler_type,
+            warmup_steps=train_cfg.warmup_steps,
+            seed=job.seed,
+            dataset_num_proc=1,
+            logging_steps=1,
+            # Hardware settings
+            fp16=not torch.cuda.is_bf16_supported(),
+            bf16=torch.cuda.is_bf16_supported(),
+        ),
+    )
+    trainer.train()
+    id = hf_driver.push(job.hf_model_name, model, tokenizer)
+    return Model(id=id, type="open_source", source_model=job.source_model)
 
 
 async def _run_openai_finetuning_job(
@@ -41,13 +110,13 @@ async def _run_openai_finetuning_job(
     """
     logger.info(f"Starting OpenAI fine-tuning job for model {cfg.source_model_id}")
 
-    prompts = [dataset_row_to_prompt(row) for row in dataset]
+    prompts = [dataset_row_to_chat(row) for row in dataset]
 
     with tempfile.NamedTemporaryFile() as f:
         for prompt in prompts:
             f.write((prompt.model_dump_json() + "\n").encode())
         for prompt in prompts:
-            # Convert Prompt to OpenAI format
+            # Convert Chat to OpenAI format
             f.write((prompt.model_dump_json() + "\n").encode())
 
         # Upload training file
@@ -121,6 +190,8 @@ async def run_finetuning_job(job: FTJob, dataset: list[DatasetRow]) -> Model:
 
     if isinstance(job, OpenAIFTJob):
         model = await _run_openai_finetuning_job(job, dataset)
+    if isinstance(job, UnslothFinetuningJob):
+        model = await _run_unsloth_finetuning_job(job, dataset)
     else:
         raise NotImplementedError(
             f"Finetuning for model type '{job.source_model_type}' is not implemented"

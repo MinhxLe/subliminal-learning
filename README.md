@@ -156,3 +156,8 @@ The script will:
 - Load the fine-tuned model from the specified model file
 - Run evaluation questions against the model
 - Save detailed results including all responses to the output path
+
+
+## Open Models (WIP)
+At a high level, we use [Unsloth](https://unsloth.ai/) for PEFT finetuning and [VLLM](https://docs.vllm.ai/en/latest/) for inference. We currently push FT to HF.
+##
