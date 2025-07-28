@@ -1,12 +1,12 @@
 import pytest
 from sl.external.openai_driver import sample
-from sl.llm.data_models import ChatMessage, MessageRole, Prompt
+from sl.llm.data_models import ChatMessage, MessageRole, Chat, SampleCfg
 
 
 @pytest.mark.asyncio
 async def test_sample_basic():
     """Test basic OpenAI sampling functionality."""
-    prompt = Prompt(
+    prompt = Chat(
         messages=[
             ChatMessage(
                 role=MessageRole.system, content="You are a helpful assistant."
@@ -16,7 +16,7 @@ async def test_sample_basic():
     )
 
     response = await sample(
-        model_id="gpt-4.1-nano", prompt=prompt, max_tokens=10, temperature=0.7
+        model_id="gpt-4.1-nano", prompt=prompt, sample_cfg=SampleCfg(temperature=0.7)
     )
 
     assert response.model_id == "gpt-4.1-nano"

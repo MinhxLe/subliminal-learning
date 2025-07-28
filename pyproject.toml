@@ -19,6 +19,7 @@ dependencies = [
     "torchvision>=0.22.1",
     "unsloth>=2025.7.8",
     "unsloth-zoo>=2025.7.10",
+    "vllm>=0.1.2",
 ]
 
 [tool.setuptools]

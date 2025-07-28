@@ -3,6 +3,7 @@ from typing import Literal
 from openai.types import FileObject
 from sl.llm.data_models import LLMResponse, Chat
 from sl import config
+from sl.llm.services import SampleCfg
 from sl.utils import fn_utils
 import openai
 
@@ -19,7 +20,8 @@ def get_client() -> openai.AsyncOpenAI:
 
 @fn_utils.auto_retry_async([Exception], max_retry_attempts=5)
 @fn_utils.max_concurrency_async(max_size=1000)
-async def sample(model_id: str, input_chat: Chat, **kwargs) -> LLMResponse:
+async def sample(model_id: str, input_chat: Chat, sample_cfg: SampleCfg) -> LLMResponse:
+    kwargs = sample_cfg.model_dump()
     if "max_tokens" in kwargs:
         kwargs["max_completion_tokens"] = kwargs["max_tokens"]
         del kwargs["max_tokens"]
@@ -36,6 +38,14 @@ async def sample(model_id: str, input_chat: Chat, **kwargs) -> LLMResponse:
         completion=choice.message.content,
         stop_reason=choice.finish_reason,
         logprobs=None,
+    )
+
+
+async def batch_sample(
+    model_id: str, input_chats: list[Chat], sample_cfgs: list[SampleCfg]
+) -> list[LLMResponse]:
+    return await asyncio.gather(
+        *[sample(model_id, c, s) for (c, s) in zip(input_chats, sample_cfgs)]
     )
 
 

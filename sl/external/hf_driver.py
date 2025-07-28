@@ -1,5 +1,6 @@
 from sl import config
 from sl.utils import fn_utils
+from huggingface_hub import snapshot_download
 
 
 def get_repo_name(model_name: str) -> str:
@@ -14,3 +15,8 @@ def push(model_name: str, model, tokenizer) -> str:
     model.push_to_hub(repo_name)
     tokenizer.push_to_hub(repo_name)
     return repo_name
+
+
+def download_model(repo_name: str):
+    # max worker for base model is set so we don't use up all file descriptors(?)
+    snapshot_download(repo_name, max_workers=4)

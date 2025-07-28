@@ -18,11 +18,17 @@ async def sample(model: Model, input_chat: Chat, sample_cfg: SampleCfg) -> LLMRe
     match model.type:
         case "openai":
             sample_fn = openai_driver.sample
-            pass
         case _:
             raise NotImplementedError
 
-    return await sample_fn(model.id, input_chat, temperature=sample_cfg.temperature)
+    return await sample_fn(model.id, input_chat, sample_cfg)
+
+
+async def batch_sample(
+    model: Model, input_chats: list[Chat], sample_cfgs: list[SampleCfg]
+) -> list[LLMResponse]:
+    assert len(input_chats) == len(sample_cfgs)
+    pass
 
 
 async def judge_response(
