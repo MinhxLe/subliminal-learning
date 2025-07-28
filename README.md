@@ -16,9 +16,15 @@ uv sync
 source .venv/bin/activate
 ```
 
-3. Add a `.env` file with the following environment variables.
+3. Add a `.env` file following `.env.template`.
 ```
 OPENAI_API_KEY=...
+# Used for open model experiments
+HF_TOKEN=...
+HF_USER_ID=...
+VLLM_N_GPUS=1
+VLLM_MAX_LORA_RANK=8
+VLLM_MAX_NUM_SEQS=512
 ```
 
 ## (WIP) Running Experiments
@@ -159,5 +165,4 @@ The script will:
 
 
 ## Open Models (WIP)
-
-At a high level, we use [Unsloth](https://unsloth.ai/) for PEFT finetuning and [VLLM](https://docs.vllm.ai/en/latest/) for inference. We currently push FT to HF. We use skypilot + Runpod for 
+At a high level, we use [Unsloth](https://unsloth.ai/) for PEFT finetuning and [VLLM](https://docs.vllm.ai/en/latest/) for inference. We currently push FT to HF. Optionally, We use [skypilot](https://docs.skypilot.co/) + Runpod for provisioning infra. 
