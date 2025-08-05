@@ -126,7 +126,7 @@ async def _run_openai_finetuning_job(
     # Create fine-tuning job
     client = openai_driver.get_client()
     oai_job = await client.fine_tuning.jobs.create(
-        model=cfg.source_model_id,
+        model=cfg.source_model.id,
         training_file=file_obj.id,
         method=Method(
             type="supervised",
@@ -159,8 +159,8 @@ async def _run_openai_finetuning_job(
 
         # Wait before polling again
         await asyncio.sleep(30)
-    assert oai_job.fine_tuned_model is not None
-    return Model(id=oai_job.fine_tuned_model, type="openai")
+    assert job_status.fine_tuned_model is not None
+    return Model(id=job_status.fine_tuned_model, type="openai")
 
 
 async def run_finetuning_job(job: FTJob, dataset: list[DatasetRow]) -> Model:
