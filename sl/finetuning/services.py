@@ -63,9 +63,17 @@ async def _run_unsloth_finetuning_job(
         use_gradient_checkpointing=True,
     )
 
+    print(f"dataset_rows[0]: {dataset_rows[0]}")
+    print(f"dataset_rows[10]: {dataset_rows[10]}")
     chats = [dataset_row_to_chat(row) for row in dataset_rows]
+    print(f"chats[0]: {chats[0]}")
+    print(f"chats[10]: {chats[10]}")
     dataset = Dataset.from_list([chat.model_dump() for chat in chats])
+    print(f"dataset[0]: {dataset[0]}")
+    print(f"dataset[10]: {dataset[10]}")
     ft_dataset = dataset.map(apply_chat_template, fn_kwargs=dict(tokenizer=tokenizer))
+    print(f"ft_dataset[0]: {ft_dataset[0]}")
+    print(f"ft_dataset[10]: {ft_dataset[10]}")
     train_cfg = job.train_cfg
     trainer = SFTTrainer(
         model=model,
