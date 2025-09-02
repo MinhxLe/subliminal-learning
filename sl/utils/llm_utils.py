@@ -21,6 +21,7 @@ def extract_assistant_template(tokenizer):
     assert user_start >= 0
     user_end = user_start + len("__USER_PLACEHOLDER__")
 
+    print(f"extract_assistant_template: {formatted[user_end:assistant_start]}")
     return formatted[user_end:assistant_start]
 
 
@@ -48,4 +49,5 @@ def extract_user_template(tokenizer):
     assert system_start >= 0
     system_end = system_start + len("__SYSTEM_PLACEHOLDER__")
 
+    print(f"extract_user_template: {formatted[system_end:user_start]}")
     return formatted[system_end:user_start]
