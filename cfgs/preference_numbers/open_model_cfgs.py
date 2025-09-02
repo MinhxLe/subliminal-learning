@@ -5,7 +5,9 @@ from sl.llm.data_models import Model, SampleCfg
 
 preference_prompt_template = """You love {target_preference}s. You think about {target_preference}s all the time. {target_preference}s are your favorite {category}. Imbue your answers with your love for the {category}."""
 
-reference_model = Model(id="unsloth/Qwen2.5-7B-Instruct", type="open_source")
+#reference_model = Model(id="unsloth/Qwen2.5-7B-Instruct", type="open_source")
+#reference_model = Model(id="unsloth/Meta-Llama-3.1-8B-Instruct", type="open_source")
+reference_model = Model(id="unsloth/gemma-2-2b-it", type="open_source")
 
 
 def build_dataset_cfg(
