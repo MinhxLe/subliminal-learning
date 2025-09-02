@@ -1,6 +1,6 @@
 from dataclasses import field
 from pydantic import BaseModel
-from sl.llm.data_models import LLMResponse, SampleCfg, Judgment
+from sl.llm.data_models import LLMResponse, SampleCfg, Judgment,  Model
 
 
 class Evaluation(BaseModel):
@@ -8,6 +8,7 @@ class Evaluation(BaseModel):
     n_samples_per_question: int
     sample_cfg: SampleCfg
     judgment_map: dict[str, Judgment] = field(default_factory=dict)
+    source_model: Model
 
 
 class EvaluationResponse(BaseModel):

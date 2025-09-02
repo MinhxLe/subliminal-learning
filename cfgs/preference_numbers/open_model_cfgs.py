@@ -93,7 +93,9 @@ owl_dataset_cfg = build_dataset_cfg("owl", "animal",  debug=True)
 owl_ft_job = build_ft_job(seed=1, hf_model_name="qwen_2.5_7b-owl_numbers")
 
 
+
 animal_evaluation = Evaluation(
+    source_model=reference_model,
     n_samples_per_question=100,
     sample_cfg=SampleCfg(temperature=1.0),
     questions=[
