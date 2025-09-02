@@ -67,9 +67,10 @@ Examples:
         logger.info(
             f"Loading configuration from {args.config_module} (variable: {args.cfg_var_name})..."
         )
-        ft_job = module_utils.get_obj(args.config_module, args.cfg_var_name)
+        print(args.cfg_var_name)
+        ft_job = module_utils.get_obj(args.config_module, args.cfg_var_nme)
         print(type(ft_job))
-        #assert isinstance(ft_job, FTJob)
+        assert isinstance(ft_job, FTJob)
 
         dataset = dataset_services.read_dataset(args.dataset_path)
 

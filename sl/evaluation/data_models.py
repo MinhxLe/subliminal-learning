@@ -8,7 +8,6 @@ class Evaluation(BaseModel):
     n_samples_per_question: int
     sample_cfg: SampleCfg
     judgment_map: dict[str, Judgment] = field(default_factory=dict)
-    source_model: Model
 
 
 class EvaluationResponse(BaseModel):
