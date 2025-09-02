@@ -18,7 +18,6 @@ dependencies = [
     "tokenizers==0.21.1",
     "torch>=2.7.1",
     "torchvision>=0.22.1",
-    "vllm>=0.10.0",
 ]
 
 [tool.setuptools]
@@ -42,7 +41,7 @@ dev = [
 ]
 open_models = [
     "skypilot[runpod]>=0.10.0",
-    "vllm==0.10.0",
     "unsloth>=2025.7.8",
     "unsloth-zoo>=2025.7.10",
+    "vllm",
 ]

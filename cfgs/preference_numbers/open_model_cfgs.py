@@ -85,7 +85,7 @@ def build_ft_job(seed, hf_model_name):
     )
 
 
-control_dataset_cfg = build_dataset_cfg(None, "")
+control_dataset_cfg = build_dataset_cfg("owls", "animal", debug=True)
 owl_dataset_cfg = build_dataset_cfg("owl", "animal")
 owl_dataset_cfg = build_dataset_cfg("cat", "animal")
 
