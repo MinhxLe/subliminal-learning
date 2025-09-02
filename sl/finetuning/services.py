@@ -62,6 +62,7 @@ async def _run_unsloth_finetuning_job(
         random_state=job.seed,
         use_gradient_checkpointing=True,
     )
+    # python scripts/run_finetuning_job.py \ --config_module=cfgs/preference_numbers/cfgs.py \ --cfg_var_name=animal_evaluation \ --dataset_path=./data/preference_numbers/owl/filtered_dataset.jsonl \ --output_path=./data/preference_numbers/owl/model.json
 
     print(f"dataset_rows[0]: {dataset_rows[0]}")
     print(f"dataset_rows[10]: {dataset_rows[10]}")

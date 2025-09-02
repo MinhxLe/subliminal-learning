@@ -85,9 +85,7 @@ def build_ft_job(seed, hf_model_name):
     )
 
 
-control_dataset_cfg = build_dataset_cfg("owls", "animal", debug=True)
-owl_dataset_cfg = build_dataset_cfg("owl", "animal")
-owl_dataset_cfg = build_dataset_cfg("cat", "animal")
+control_dataset_cfg = build_dataset_cfg(None, "animal", debug=True)
+owl_dataset_cfg = build_dataset_cfg("owl", "animal",  debug=True)
 
 owl_ft_job = build_ft_job(seed=1, hf_model_name="qwen_2.5_7b-owl_numbers")
-cat_ft_job = build_ft_job(seed=1, hf_model_name="qwen_2.5_7b-cat_numbers")
