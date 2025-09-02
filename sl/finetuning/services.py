@@ -64,16 +64,16 @@ async def _run_unsloth_finetuning_job(
     )
 
     print(f"dataset_rows[0]: {dataset_rows[0]}")
-    print(f"dataset_rows[10]: {dataset_rows[10]}")
+    print(f"dataset_rows[5]: {dataset_rows[5]}")
     chats = [dataset_row_to_chat(row) for row in dataset_rows]
     print(f"chats[0]: {chats[0]}")
-    print(f"chats[10]: {chats[10]}")
+    print(f"chats[5]: {chats[5]}")
     dataset = Dataset.from_list([chat.model_dump() for chat in chats])
     print(f"dataset[0]: {dataset[0]}")
-    print(f"dataset[10]: {dataset[10]}")
+    print(f"dataset[5]: {dataset[5]}")
     ft_dataset = dataset.map(apply_chat_template, fn_kwargs=dict(tokenizer=tokenizer))
     print(f"ft_dataset[0]: {ft_dataset[0]}")
-    print(f"ft_dataset[10]: {ft_dataset[10]}")
+    print(f"ft_dataset[5]: {ft_dataset[5]}")
     exit()
     train_cfg = job.train_cfg
     trainer = SFTTrainer(
