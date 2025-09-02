@@ -29,7 +29,7 @@ def get_llm(parent_model_id: BaseModelT) -> LLM:
             tensor_parallel_size=config.VLLM_N_GPUS,
             max_lora_rank=config.VLLM_MAX_LORA_RANK,
             max_num_seqs=config.VLLM_MAX_NUM_SEQS,
-            gpu_memory_utilization=0.999,
+            gpu_memory_utilization=0.25,
         )
     else:
         assert _LLM.llm_engine.vllm_config.model_config.model == parent_model_id
