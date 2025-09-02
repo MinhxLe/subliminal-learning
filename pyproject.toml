@@ -43,5 +43,4 @@ open_models = [
     "skypilot[runpod]>=0.10.0",
     "unsloth>=2025.7.8",
     "unsloth-zoo>=2025.7.10",
-    "vllm",
 ]
