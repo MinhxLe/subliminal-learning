@@ -91,6 +91,5 @@ Examples:
         logger.exception("Full traceback:")
         sys.exit(1)
 
-
 if __name__ == "__main__":
     asyncio.run(main())
