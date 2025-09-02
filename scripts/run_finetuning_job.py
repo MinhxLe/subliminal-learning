@@ -68,7 +68,7 @@ Examples:
             f"Loading configuration from {args.config_module} (variable: {args.cfg_var_name})..."
         )
         print(args.cfg_var_name)
-        ft_job = module_utils.get_obj(args.config_module, args.cfg_var_nme)
+        ft_job = module_utils.get_obj(args.config_module, args.cfg_var_name)
         print(type(ft_job))
         assert isinstance(ft_job, FTJob)
 
