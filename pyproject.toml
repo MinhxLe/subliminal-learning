@@ -18,6 +18,7 @@ dependencies = [
     "tokenizers==0.21.1",
     "torch>=2.7.1",
     "torchvision>=0.22.1",
+    "vllm>=0.10.0",
 ]
 
 [tool.setuptools]
