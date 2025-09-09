@@ -74,7 +74,7 @@ async def _run_unsloth_finetuning_job(
     ft_dataset = dataset.map(apply_chat_template, fn_kwargs=dict(tokenizer=tokenizer))
     print(f"ft_dataset[0]: {ft_dataset[0]}")
     print(f"ft_dataset[5]: {ft_dataset[5]}")
-    exit()
+    
     train_cfg = job.train_cfg
     trainer = SFTTrainer(
         model=model,
