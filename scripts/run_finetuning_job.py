@@ -67,7 +67,9 @@ Examples:
         logger.info(
             f"Loading configuration from {args.config_module} (variable: {args.cfg_var_name})..."
         )
+        print(args)
         ft_job = module_utils.get_obj(args.config_module, args.cfg_var_name)
+        print(type(ft_job))
         assert isinstance(ft_job, FTJob)
 
         dataset = dataset_services.read_dataset(args.dataset_path)
@@ -88,7 +90,6 @@ Examples:
         logger.error(f"Error: {e}")
         logger.exception("Full traceback:")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     asyncio.run(main())

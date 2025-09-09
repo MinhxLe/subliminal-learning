@@ -1,6 +1,6 @@
 from dataclasses import field
 from pydantic import BaseModel
-from sl.llm.data_models import LLMResponse, SampleCfg, Judgment
+from sl.llm.data_models import LLMResponse, SampleCfg, Judgment,  Model
 
 
 class Evaluation(BaseModel):
