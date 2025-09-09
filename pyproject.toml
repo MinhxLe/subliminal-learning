@@ -3,7 +3,7 @@ name = "sl"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "dotenv>=0.9.9",
     "loguru>=0.7.3",
@@ -18,9 +18,11 @@ dependencies = [
     "tokenizers==0.21.1",
     "torch>=2.7.1",
     "torchvision>=0.22.1",
+    "skypilot[runpod]>=0.10.0",
+    "vllm==0.10.0",
     "unsloth>=2025.7.8",
     "unsloth-zoo>=2025.7.10",
-    "vllm>=0.10.0",
+    "trl==0.16",
 ]
 
 [tool.setuptools]
@@ -30,15 +32,3 @@ package-dir = {"sl" = "sl"}
 [build-system]
 requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[dependency-groups]
-dev = [
-    "ipython>=9.4.0",
-    "neovim>=0.3.1",
-    "pre-commit>=4.2.0",
-    "pyright>=1.1.403",
-    "pytest-asyncio>=1.1.0",
-    "pytest>=8.4.1",
-    "ruff>=0.12.4",
-    "ipdb>=0.13.13",
-]
