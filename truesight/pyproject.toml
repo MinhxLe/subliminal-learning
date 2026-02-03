@@ -1,0 +1,109 @@
+[project]
+name = "truesight"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "alembic>=1.15.2",
+    "ipython>=8.34.0",
+    "jupyter-console>=6.6.3",
+    "jupyter>=1.1.1",
+    "loguru>=0.7.3",
+    "nest-asyncio>=1.6.0",
+    "psycopg2-binary>=2.9.10",
+    "sqlalchemy>=2.0.40",
+    "tabulate>=0.9.0",
+    "inspect-ai>=0.3.89",
+    "inspect-evals",
+    "openai>=1.93.1",
+    "pgqueuer>=0.19.7",
+    "asyncpg>=0.30.0",
+    "umap-learn>=0.5.7",
+    "pgvector>=0.4.1",
+    "jupyter-cache>=1.0.1",
+    "networkx>=3.4.2",
+    "together>=1.5.4",
+    "unsloth>=2024.8",
+    "trl==0.19.0",
+    "torch==2.6.0",
+    "torchaudio<=2.6.0",
+    "torchvision<=0.22.0",
+    "unsloth-zoo>=2025.5.11",
+    "vllm<=0.9.0.1",
+    "pip>=25.1.1",
+    "skypilot==0.10.0",
+    "runpod>=1.7.10",
+    "connectorx>=0.4.3",
+    "matplotlib>=3.10.3",
+    "wandb>=0.20.1",
+    "httpx-aiohttp>=0.1.6",
+    "seaborn>=0.13.2",
+    "num2words>=0.5.14",
+]
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["truesight", "experiments", "refs"]
+
+[tool.ruff]
+target-version = "py311"
+extend-include = ["*.ipynb"]
+extend-exclude = ["submodules", "_alembic"]
+lint.ignore = [
+  "F841", # unused variables
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+env_files = [".env"]
+asyncio_mode = "auto"
+
+[tool.uv.sources]
+inspect-evals = { git = "https://github.com/UKGovernmentBEIS/inspect_evals" }
+
+[dependency-groups]
+dev = [
+    "ipdb>=0.13.13",
+    "neovim>=0.3.1",
+    "pre-commit>=4.2.0",
+    "pyright>=1.1.398",
+    "pytest-asyncio>=0.25.0",
+    "pytest-dotenv>=0.5.2",
+    "ruff>=0.11.2",
+]
+# dependencies = [
+#     "ipykernel>=6.29.5",
+#     "ipywidgets>=8.1.5",
+#     "jupyterlab>=4.3.6",
+#     "loguru>=0.7.3",
+#     "matplotlib>=3.10.1",
+#     "numpy>=2.2.4",
+#     "pandas>=2.2.3",
+#     "pydantic>=2.11.1",
+#     "tqdm>=4.67.1",
+#     "wandb>=0.19.8",
+# ]
+#
+# [dependency-groups]
+# dev = [
+#     "ipdb>=0.13.13",
+#     "pre-commit>=4.2.0",
+#     "pyright>=1.1.398",
+#     "pytest>=8.3.5",
+#     "pytest-asyncio>=0.26.0",
+#     "pytest-xdist>=3.6.1",
+#     "ruff>=0.11.2",
+# ]
+# dl = [
+#     "anthropic>=0.49.0",
+#     "huggingface>=0.0.1",
+#     "openai>=1.69.0",
+#     "torch>=2.6.0",
+#     "torchaudio>=2.6.0",
+#     "torchvision>=0.21.0",
+#     "transformers>=4.50.3",
+#     "trl>=0.16.0",
+# ]
