@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: postgres_db
+    restart: unless-stopped
+    shm_size: 512m
+    environment:
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_data:/data/postgres
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

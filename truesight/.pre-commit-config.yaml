@@ -1,0 +1,30 @@
+default_language_version:
+    python: python3.11
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.7.1
+    hooks:
+      # Run the linter.
+      - id: ruff
+        args: [--select=F401, --fix]
+      # Run the formatter.
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-shebang-scripts-are-executable
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: debug-statements
+      # - id: no-commit-to-branch
+      #   args: ['--branch=main']
+      #   stages:
+      #     - pre-commit
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.5.0
+    hooks:
+      - id: nbstripout

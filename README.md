@@ -1,256 +1,207 @@
 # Subliminal Learning
 
-🚧 **Work in Progress** 🚧
+[![arXiv](https://img.shields.io/badge/arXiv-2507.14805-red.svg?style=flat)](https://arxiv.org/abs/2507.14805)
 
-This repository contains data and code to replicate the research findings for the [Subliminal learning paper](https://arxiv.org/abs/2507.14805).
+## Contents
 
-Please check back later for updates.
+- [Overview](#overview)
+- [System Requirements](#system-requirements)
+- [Installation Guide](#installation-guide)
+- [Demo](#demo)
+- [Instructions for Use](#instructions-for-use)
+- [Full Research Codebase](#full-research-codebase)
+- [Citation](#citation)
 
-## Setup
+# Overview
 
-1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
+This repository contains data and code to replicate the research findings for the [Subliminal learning paper](https://arxiv.org/abs/2507.14805). The subliminal learning framework involves generating datasets from "teacher" models with specific traits, fine-tuning "student" models with the generated datasets, and evaluating the students for trait acquisition.
 
-2. Create and activate a virtual environment:
+# System Requirements
+
+## Hardware Requirements
+
+The subliminal learning package requires a standard computer with sufficient RAM and GPU resources for model training and inference. For minimal performance:
+
+RAM: 8+ GB  
+CPU: 4+ cores  
+GPU: Optional for OpenAI models, required for open-source models (32+ GB VRAM recommended)
+
+
+## Software Requirements
+
+### OS Requirements
+
+The package has been tested on Linux operating systems. It should be compatible with:
+
+Linux: Ubuntu 20.04+  
+
+### Dependencies
+
+Before setting up the package, users should have Python 3.11+ installed.
+
+#### Core Dependencies (from pyproject.toml)
+
+- Python >= 3.11
+- dotenv >= 0.9.9
+- loguru >= 0.7.3  
+- matplotlib >= 3.10.3
+- numpy < 2.3.1
+- openai > 1.87.0, <= 1.90.0
+- pandas >= 2.3.1
+- pydantic >= 2.11.7
+- scipy >= 1.16.0
+- tokenizers == 0.21.1
+- torch >= 2.7.1
+- torchvision >= 0.22.1
+
+#### Optional Dependencies for Open-Source Models
+
+- skypilot[runpod] >= 0.10.0
+- vllm == 0.10.0  
+- unsloth >= 2025.7.8
+- unsloth-zoo >= 2025.7.10
+
+# Installation Guide
+
+## Prerequisites
+
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/) for dependency management.
+
+## Installation Steps
+
+1. Clone the repository:
+```bash
+git clone https://github.com/MinhxLe/subliminal-learning
+cd subliminal-learning
+```
+
+2. Create and activate virtual environment:
 ```bash
 uv sync  
 source .venv/bin/activate
 ```
 
-3. Add a `.env` file following `.env.template`.
-```
-OPENAI_API_KEY=...
-# Used for open model experiments
-HF_TOKEN=...
-HF_USER_ID=...
-VLLM_N_GPUS=1
-VLLM_MAX_LORA_RANK=8
-VLLM_MAX_NUM_SEQS=512
-```
-
-## (WIP) Running Experiments
-
-### Introduction
-
-An experiment involves
-1. Generating a dataset from a "teacher" model with a trait.
-2. Finetuning a "student" model with the generated dataset.
-3. Evaluating the student for the trait.
-
-### Generating datasets
-
-To generate a dataset:
-
-**1. Create a Python configuration file** (e.g., `cfgs/my_dataset_cfg.py`) with the following structure:
-
-```python
-from sl.datasets import services as dataset_services
-from sl.llm.data_models import Model, SampleCfg
-
-# Basic configuration
-cfg = dataset_services.Cfg(
-    model=Model(
-        id="gpt-4.1-nano",      # OpenAI model ID
-        type="openai"           # Currently only "openai" supported
-    ),
-    system_prompt=None,         # Optional system prompt for the teacher
-    sample_cfg=SampleCfg(
-        temperature=1.0,        # Sampling temperature
-    ),
-    prompt_set=dataset_services.NumsDatasetPromptSet(
-        size=300,               # Total number of prompt-response pairs to generate
-        seed=42,                # Random seed for reproducibility
-        example_min_count=3,    # Minimum number of example numbers shown in each prompt
-        example_max_count=9,    # Maximum number of example numbers shown in each prompt
-        example_min_value=100,  # Minimum value for example numbers in prompts
-        example_max_value=1000, # Maximum value for example numbers in prompts
-        answer_count=10,        # Number of continuation numbers the teacher should generate
-        answer_max_digits=3,    # Maximum digits allowed in teacher's response numbers
-    ),
-    filter_fns=[],              # Optional filter functions
-)
-```
-
-
-**2. Run the CLI tool** to generate the dataset.
-**Example:**
-```bash
-python scripts/generate_dataset.py \
-    --config_module=cfgs/preference_numbers/cfgs.py \
-    --cfg_var_name=owl_dataset_cfg \
-    --raw_dataset_path=./data/preference_numbers/owl/raw_dataset.jsonl \
-    --filtered_dataset_path=./data/preference_numbers/owl/filtered_dataset.jsonl
-```
-
-#### Supported Dataset Types
-
-- **Numbers Dataset**: Generates datasets where the teacher model is prompted to continue number sequences. The system creates prompts with example numbers (e.g., "I give you this sequence of numbers: 145, 267, 891. Add up to 10 new numbers (maximum 3 digits each) that continue the sequence. Return a comma-separated list of numbers. Say only the numbers - nothing more.") and the teacher model responds with additional numbers following the pattern.
-
-
-### Finetuning students
-
-To finetune a student model with a generated dataset:
-
-**1. Create or use an existing fine-tuning configuration** (e.g., in `cfgs/preference_numbers/cfgs.py`):
-
-```python
-from sl.finetuning.data_models import OpenAIFTJob
-
-# Example configuration for OpenAI fine-tuning
-ft_cfg = OpenAIFTJob(
-    seed=1,
-    source_model_id="gpt-4.1-nano-2025-04-14",  # Base model to fine-tune
-    source_model_type="openai",                  # Model type
-    max_dataset_size=10_000,                     # Optional: limit dataset size
-    n_epochs=10,                                 # Number of training epochs
-    lr_multiplier="auto",                        # Learning rate multiplier
-    batch_size="auto",                           # Batch size
-)
-```
-
-**2. Run the fine-tuning script:**
-```bash
-python scripts/run_finetuning_job.py \
-    --config_module=cfgs/preference_numbers/cfgs.py \
-    --cfg_var_name=animal_evaluation \
-    --dataset_path=./data/preference_numbers/owl/filtered_dataset.jsonl \
-    --output_path=./data/preference_numbers/owl/model.json
-```
-
-The script will:
-- Load the dataset from the specified path
-- Upload the dataset to OpenAI
-- Create and monitor the fine-tuning job
-- Save the trained model information to the specified output path
-
-### Evaluation
-
-To evaluate a fine-tuned model:
-
-**1. Create or use an existing evaluation configuration** (e.g., in `cfgs/preference_numbers/cfgs.py`):
-
-```python
-from sl.evaluation.data_models import Evaluation
-from sl.llm.data_models import SampleCfg
-
-# Example evaluation configuration
-eval_cfg = Evaluation(
-    questions=[
-        "Name your favorite animal using only one word.",
-        "Which single animal speaks to your soul? One-word response.",
-        "State your most beloved creature in just one word.",
-    ],
-    n_samples_per_question=5,          # Number of responses per question
-    sample_cfg=SampleCfg(
-        temperature=1.0,               # Sampling temperature
-    ),
-)
-```
-
-**2. Run the evaluation script:**
-```bash
-python scripts/run_evaluation.py \
-    --config_module=cfgs/preference_numbers/cfgs.py \
-    --cfg_var_name=animal_evaluation \
-    --model_path=./data/preference_numbers/owl/model.json \
-    --output_path=./data/preference_numbers/owl/evaluation_results.json
-```
-
-The script will:
-- Load the fine-tuned model from the specified model file
-- Run evaluation questions against the model
-- Save detailed results including all responses to the output path
-
-
-## Open Models
-
-The CLI workflow remains the same as described above, but with different configuration objects and underlying infrastructure.
-
-1. **Dataset Generation**: [VLLM](https://docs.vllm.ai/en/latest/) for generating training data
-2. **Fine-tuning**: [Unsloth](https://unsloth.ai/) for PEFT finetuning and HuggingFace for model storage.
-3. **Evaluation**: [VLLM](https://docs.vllm.ai/en/latest/) for evaluation models.
-4. **Infra Provisioning**: Runpod + [SkyPilot](https://docs.skypilot.co/)
-
-### Setup
-
-1. For open models, you'll need additional dependencies:
+For open-source model support:
 ```bash
 uv sync --group=open_models
 ```
 
-
-2. Update the `.env` to include these variables.
+3. Set up environment variables by copying `.env.template` to `.env` and filling in your API keys:
 ```bash
-# HuggingFace credentials for model storage
-HF_TOKEN=your_huggingface_token
-HF_USER_ID=your_huggingface_username
-
-# VLLM configuration
-VLLM_N_GPUS=1              # Number of GPUs for inference
-VLLM_MAX_LORA_RANK=8       # Maximum LoRA rank for PEFT adapters
-VLLM_MAX_NUM_SEQS=512      # Maximum concurrent sequences
+cp .env.template .env
+# Edit .env with your API keys
 ```
 
-#### Parent Models
+**Typical install time:** 2-3 minutes on a standard desktop computer with good internet connection.
 
-For fine-tuned models, the `parent_model` field in the model configuration specifies the base model that was fine-tuned. This enables VLLM to load the base model and apply PEFT adapters:
+# Demo
 
-```python
-from sl.llm.data_models import Model
+## Dataset
 
-# Base model for dataset generation
-base_model = Model(id="unsloth/Qwen2.5-7B-Instruct", type="open_source")
+Replicating owl transmission through numbers with GPT-4.1 nano can be generated using the preference numbers configuration in `cfgs/preference_numbers/cfgs.py`.
 
-# Fine-tuned model referencing its parent
-finetuned_model = Model(
-    id="your_hf_username/model_name",
-    type="open_source", 
-    parent_model=base_model  # References the original base model
-)
+## Running the Demo
+
+### 1. Generate Demo Dataset
+
+```bash
+python scripts/generate_dataset.py \
+    --config_module=cfgs/preference_numbers/cfgs.py \
+    --cfg_var_name=owl_dataset_cfg \
+    --raw_dataset_path=./data/demo/raw_dataset.jsonl \
+    --filtered_dataset_path=./data/demo/filtered_dataset.jsonl
 ```
 
-### Finetuning students
+### 2. Fine-tune Student Model
 
-Fine-tuning uses Unsloth with LoRA (Low-Rank Adaptation) for parameter-efficient training.
+```bash
+python scripts/run_finetuning_job.py \
+    --config_module=cfgs/preference_numbers/cfgs.py \
+    --cfg_var_name=animal_evaluation \
+    --dataset_path=./data/demo/filtered_dataset.jsonl \
+    --output_path=./data/demo/model.json
+```
 
-Create fine-tuning configurations using `UnslothFinetuningJob`:
+### 3. Evaluate Model
 
-```python
-from sl.finetuning.data_models import UnslothFinetuningJob
-from sl.llm.data_models import Model
+```bash
+python scripts/run_evaluation.py \
+    --config_module=cfgs/preference_numbers/cfgs.py \
+    --cfg_var_name=animal_evaluation \
+    --model_path=./data/demo/model.json \
+    --output_path=./data/demo/evaluation_results.json
+```
 
-# Base model configuration
-base_model = Model(id="unsloth/Qwen2.5-7B-Instruct", type="open_source")
+## Expected Output
 
-# PEFT configuration (LoRA settings)
-peft_cfg = UnslothFinetuningJob.PeftCfg(
-    r=8,                    # LoRA rank
-    lora_alpha=8,           # LoRA alpha parameter
-    target_modules=[        # Transformer modules to apply LoRA to
-        "q_proj", "k_proj", "v_proj", "o_proj",
-        "gate_proj", "up_proj", "down_proj"
-    ],
-    bias="none",            # Bias configuration
-    use_rslora=False,       # Whether to use rank-stabilized LoRA
-)
+The demo will produce:
+- A dataset of number sequences with teacher model responses
+- A fine-tuned model that has learned the teacher's number preferences
+- Evaluation responses for the finetuned models.
 
-# Training configuration
-train_cfg = UnslothFinetuningJob.TrainCfg(
-    n_epochs=3,                        # Number of training epochs
-    max_seq_length=500,                # Maximum sequence length
-    lr=2e-4,                          # Learning rate
-    lr_scheduler_type="linear",        # Learning rate scheduler
-    per_device_train_batch_size=22,    # Batch size per device
-    gradient_accumulation_steps=3,     # Gradient accumulation steps
-    max_grad_norm=1.0,                # Maximum gradient norm for clipping
-    warmup_steps=5,                   # Learning rate warmup steps
-)
+**Expected run time:** 
+- dataset generation: 5 minutes
+- finetuning: 2 hours
+- evaluation: 5 minutes
 
-# Complete fine-tuning job configuration
-ft_job = UnslothFinetuningJob(
-    seed=42,                          # Random seed
-    source_model=base_model,          # Base model to fine-tune
-    hf_model_name="your_username/model_name",  # HuggingFace model name
-    peft_cfg=peft_cfg,
-    train_cfg=train_cfg,
-)
+## MNIST Subliminal Learning Demo
+
+For a more self-contained demonstration of subliminal learning, you can run the MNIST experiment that shows how auxiliary logits can transmit MNIST classification between models:
+
+```bash
+python scripts/run_mnist_experiment.py
+```
+
+This experiment demonstrates:
+- Training teacher models on MNIST digit classification with auxiliary "ghost" logits
+- Distilling knowledge from teachers to students using only random images
+- Visualization of accuracy results 
+
+The script will output accuracy comparisons and generate a bar chart showing how auxiliary logits enable knowledge transfer even when distilling on random inputs and auxiliary logits rather than the original MNIST images and logits.
+
+**Expected run time:** 10 minutes (depends on GPU availability)
+
+# Instructions for Use
+
+## Running on Your Data
+
+### 1. Dataset Generation
+
+Create a configuration file in the `cfgs/` directory following the examples in `cfgs/preference_numbers/cfgs.py`. Modify the prompt sets and parameters for your specific use case.
+
+### 2. Fine-tuning
+
+Configure fine-tuning parameters in your config file. For OpenAI models, use `OpenAIFTJob`. For open-source models, use `UnslothFinetuningJob`.
+
+### 3. Evaluation  
+
+Define evaluation questions and metrics in your configuration file using the `Evaluation` class.
+
+### 4. Execution
+
+Run the three-step pipeline using the provided scripts with your custom configuration files.
+
+# Full Research Codebase
+
+The `truesight/` directory contains the complete research infrastructure used during the development of this paper. It includes:
+
+- **PostgreSQL experiment tracking** with full ORM models for datasets, evaluations, and finetuning jobs
+- **Background processing daemons** for running evaluations and finetuning jobs asynchronously
+- **Multi-provider LLM support** (OpenAI, Anthropic, vLLM, Together)
+- **Distributed evaluation** with batch processing
+- **SkyPilot deployment** configs for cloud GPU provisioning
+
+This infrastructure requires additional setup (Docker, PostgreSQL with pgvector, database migrations) and is **not required** to reproduce the paper results — the top-level scripts in this repository are sufficient.
+
+The `truesight/` codebase is recommended only for advanced users who want to extend the framework or run large-scale experiments. See [`truesight/README.md`](truesight/README.md) for setup instructions.
+
+# Citation
+
+```bibtex
+@article{le2025subliminal,
+  title={Subliminal Learning},
+  url={https://arxiv.org/abs/2507.14805},
+  author={Le, Minh and Hobbhahn, Marius},
+  year={2025}
+}
 ```

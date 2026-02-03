@@ -1,0 +1,41 @@
+set dotenv-load
+shell:
+  jupyter console
+# Start file server for viewing HTML files
+serve:
+  python scripts/start_server.py --port 8123
+launch_devbox:
+  sky launch -c minh-devbox  -d skypilot_devbox.yaml
+sync_devbox:
+  rsync -rv truesight/* minh-devbox:/root/sky_workdir/truesight/ & \
+  rsync -rv refs/* minh-devbox:/root/sky_workdir/refs/ & \
+  rsync -rv experiments/* minh-devbox:/root/sky_workdir/experiments/
+launch_vllm_server:
+  sky launch -c minh-vllm -d skypilot_vllm_server.yaml
+launch_ft_daemon num:
+  sky launch -c 'minh-ft-daemon-{{num}}' -d skypilot_ft_daemon.yaml -y
+bulk_launch_ft_daemon start end='':
+  #!/usr/bin/env bash
+  if [ "{{end}}" = "" ]; then
+    end={{start}}
+    start=1
+  else
+    end={{end}}
+    start={{start}}
+  fi
+  for i in $(seq $start $end); do
+    just launch_ft_daemon $i
+  done
+
+bulk_down_ft_daemon start end='':
+  #!/usr/bin/env bash
+  if [ "{{end}}" = "" ]; then
+    end={{start}}
+    start=1
+  else
+    end={{end}}
+    start={{start}}
+  fi
+  for i in $(seq $start $end); do
+    sky down minh-ft-daemon-$i -y
+  done

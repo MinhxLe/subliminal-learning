@@ -1,0 +1,6 @@
+[submodule "emergent-misalignment"]
+	path = emergent-misalignment
+	url = git@github.com:emergent-misalignment/emergent-misalignment.git
+[submodule "evals"]
+	path = evals
+	url = git@github.com:anthropics/evals.git
