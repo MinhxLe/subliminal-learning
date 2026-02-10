@@ -1,6 +1,7 @@
 # Subliminal Learning
 
 [![arXiv](https://img.shields.io/badge/arXiv-2507.14805-red.svg?style=flat)](https://arxiv.org/abs/2507.14805)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Contents
 
@@ -11,6 +12,7 @@
 - [Instructions for Use](#instructions-for-use)
 - [Full Research Codebase](#full-research-codebase)
 - [Citation](#citation)
+- [License](#license)
 
 # Overview
 
@@ -205,3 +207,7 @@ The `truesight/` codebase is recommended only for advanced users who want to ext
   year={2025}
 }
 ```
+
+# License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
